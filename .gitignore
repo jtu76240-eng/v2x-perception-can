@@ -1,0 +1,75 @@
+# Build artifacts
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+
+# Binary outputs
+/tcnnapp
+/bin/
+
+# Object files and libraries
+*.o
+*.so
+*.a
+*.lo
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs and temporary
+*.log
+*.tmp
+*.pid
+
+# Shared memory artifacts (not under version control)
+/dev/shm/
+
+# Coverage / test
+.pytest_cache/
+coverage/
+
+# SDK/toolchain extract dirs
+/sdk/
+
+# Misc
+.cache/
+*.bak
+*.orig
+t ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with '#' are comments.
+# For a project mostly in C, the following would be a good set of
+# exclude patterns (uncomment them if you want to use them):
+# *.[oa]
+# *~
+
+build/
+
+GTAGS
+
+GRTAGS
+
+GPATH
+
+aclocal.m4
+autom4te.cache/
+compile
+config.h.in
+configure
+depcomp
+install-sh
+missing
+Makefile.in
+ltmain.sh
+.vscode

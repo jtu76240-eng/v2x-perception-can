@@ -1,0 +1,39 @@
+# 보드에 옮겨야 할 파일 목록
+# 출처: WSL/호스트 PC의 SDK 경로 (보드에는 이 경로가 없음)
+# 대상: 보드의 /home/topst/my_tcnn/ (또는 원하는 폴더)
+
+SDK=/usr/local/oecore-x86_64/sysroots/cortexa53-telechips-linux
+
+## 1. 실행 파일 (빌드 결과물)
+  $PWD/build/tcnnapp                    -> /home/topst/my_tcnn/tcnnapp
+
+## 2. SDK에서 복사할 공유 라이브러리 (보드에 없을 수 있음)
+  $SDK/usr/lib/libopencv_calib3d.so.405   -> /home/topst/my_tcnn/
+  $SDK/usr/lib/libopencv_imgcodecs.so.405 -> /home/topst/my_tcnn/
+  $SDK/usr/lib/libopencv_imgproc.so.405   -> /home/topst/my_tcnn/
+  $SDK/usr/lib/libopencv_core.so.405      -> /home/topst/my_tcnn/
+  $SDK/usr/lib/libstdc++.so.6             -> /home/topst/my_tcnn/
+  $SDK/usr/lib/libjson-c.so.5             -> /home/topst/my_tcnn/
+  $SDK/usr/lib/libvisionprotocol.so.2     -> /home/topst/my_tcnn/
+  $SDK/usr/lib/libtcndnpu.so.1            -> /home/topst/my_tcnn/
+
+## 3. 보드에 이미 있는 경우가 많은 것 (없으면 추가로 복사)
+  $SDK/lib/libgcc_s.so.1   -> /home/topst/my_tcnn/
+  $SDK/lib/libc.so.6       -> /home/topst/my_tcnn/
+
+## WSL에서 보드로 한 번에 복사하는 예 (topst@192.168.0.100 기준)
+  SCP_TARGET=topst@192.168.0.100
+  SCP_PATH=/home/topst/my_tcnn
+  SDK=/usr/local/oecore-x86_64/sysroots/cortexa53-telechips-linux
+
+  scp build/tcnnapp $SCP_TARGET:$SCP_PATH/
+  scp $SDK/usr/lib/libopencv_calib3d.so.405 $SDK/usr/lib/libopencv_imgcodecs.so.405 \
+      $SDK/usr/lib/libopencv_imgproc.so.405 $SDK/usr/lib/libopencv_core.so.405 \
+      $SDK/usr/lib/libstdc++.so.6 $SDK/usr/lib/libjson-c.so.5 \
+      $SDK/usr/lib/libvisionprotocol.so.2 $SDK/usr/lib/libtcndnpu.so.1 \
+      $SCP_TARGET:$SCP_PATH/
+
+## 보드에서 실행
+  cd /home/topst/my_tcnn
+  export LD_LIBRARY_PATH=/home/topst/my_tcnn
+  sudo -E ./tcnnapp -o rtpm
