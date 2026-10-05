@@ -42,6 +42,7 @@ include_directories(json-c)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -lpthread -ljson-c -ldl")
 set(SOURCES
     src/NnAppMain.c
+    src/NnCan.c
     src/NnDebug.c
     src/NnMemory.c
     src/NnNeuralNetwork.c

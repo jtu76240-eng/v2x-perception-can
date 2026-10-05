@@ -39,7 +39,9 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <time.h>
 
+#include "NnCan.h"
 /* ========================================================================== */
 /*                           Macros & Typedefs                                */
 /* ========================================================================== */
@@ -163,6 +165,7 @@ static const struct {
 uint64_t syncStamp = 0; //global
 app_obj_t g_AppObj;
 pthread_t g_InteractiveThread = (pthread_t)NULL;
+static volatile uint16_t g_latest_capture_ms_u16[NETWORK_INDEX_MAX] = {0};
 
 #ifdef INTERACTIVE_MODE
 static char menu[] = {
@@ -256,7 +259,7 @@ static void NnparseArgs(param_info_t *param, int argc, char** argv)
 	// Setting Default Parameters
 	param->networkCnt = DEFAULT_NETWORK_INDEX;
 
-	// 여기에서 같은 경로의 모델을 두 NPU가 사용하도록 지정해주기
+	// 두 NPU에서 동일한 모델을 사용하도록 기본 모델 경로 설정
 	param->networkPath[NETWORK_INDEX_0] = DEFAULT_NETWORK_PATH_1;
 	param->networkPath[NETWORK_INDEX_1] = DEFAULT_NETWORK_PATH_1;;
 
@@ -1294,13 +1297,24 @@ static void NnPrintDetectionResults(app_context_t *pContext, int netIdx)
 	{
 		int32_t i;
 		int32_t cnt = pNet->resultObj.cnt;
+		int32_t best_cls = -1;
+		float best_score = -1.0f;
 		for (i = 0; i < cnt; i++)
 		{
 			int32_t cls = pNet->resultObj.obj[i].cls;
 			float score = pNet->resultObj.obj[i].score;
 			fprintf(stderr, "[DETECT] net=%d cls=%d score=%.4f\n", netIdx, cls, (double)score);
 			fflush(stderr);
+			if (score > best_score)
+			{
+				best_score = score;
+				best_cls = cls;
+			}
 		}
+		if (best_cls >= 0)
+			(void)NnCanSendObjectNow((uint8_t)best_cls, g_latest_capture_ms_u16[netIdx]);
+		else
+			(void)NnCanSendObjectNow(0xFF, g_latest_capture_ms_u16[netIdx]);
 	}
 }
 
@@ -1929,6 +1943,7 @@ int main(int argc, char **argv)
 	NnScalerInit(pObj->scaler_handle);																				// Init Scaler
 
 	(void)NnExportShmInit(pContext);																					// 공유 메모리 export (OpenCV 프로세스용)
+	(void)NnCanLaneSenderInit();																						// CAN 송신 스레드 (lane_status SHM 소비)
 	(void)NnVideoRecorderInit(pContext);																				// 비동기 영상 녹화 (-R 시)
 
 	NnPerfMonitorInit(pContext, pObj->msg_handle);
@@ -1998,6 +2013,15 @@ int main(int argc, char **argv)
 		t_ms = getCurrentTime() * 1000.0;
 		NN_LOG("[PERF] Step1 GetFrame start ms=%.2f\n", t_ms);
 		NnGetFrame(pContext, pObj->cam_handle, pObj->msg_handle);
+		/* Capture timestamp (epoch-based) right after frame acquisition */
+		{
+			struct timespec ts;
+			if (clock_gettime(CLOCK_REALTIME, &ts) == 0)
+			{
+				uint64_t ms = (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)(ts.tv_nsec / 1000000ULL);
+				g_latest_capture_ms_u16[curNet] = (uint16_t)(ms & 0xFFFFU);
+			}
+		}
 		
 		// Step 2. Resize frame for inference: 10ms
 		t_ms = getCurrentTime() * 1000.0;
@@ -2064,6 +2088,7 @@ int main(int argc, char **argv)
 
 	/* Deinitialize */
 	NnVideoRecorderDeinit();
+	NnCanLaneSenderDeinit();
 	NnExportShmDeinit();
 	NnNeuralNetworkDeinit(&pContext->inferenceContext, NETWORK_INDEX_0);
 	NnNeuralNetworkDeinit(&pContext->inferenceContext, NETWORK_INDEX_1);
