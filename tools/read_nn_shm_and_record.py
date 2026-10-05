@@ -129,7 +129,7 @@ def main():
             now = time.perf_counter()
             frame = read_frame_from_shm(mm, info)  # BGR from NN app (for display)
             if writer:
-                # BGR 프레임을 VideoWriter에 전달
+                # BGR 프레임을 RGB로 변환한 뒤 VideoWriter에 전달
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 elapsed = now - last_wall_time
                 n = max(1, int(round(elapsed * args.fps)))
