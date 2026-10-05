@@ -259,7 +259,7 @@ static void NnparseArgs(param_info_t *param, int argc, char** argv)
 	// Setting Default Parameters
 	param->networkCnt = DEFAULT_NETWORK_INDEX;
 
-	// 여기에서 같은 경로의 모델을 두 NPU가 사용하도록 지정해주기
+	// 두 NPU에서 동일한 모델을 사용하도록 기본 모델 경로 설정
 	param->networkPath[NETWORK_INDEX_0] = DEFAULT_NETWORK_PATH_1;
 	param->networkPath[NETWORK_INDEX_1] = DEFAULT_NETWORK_PATH_1;;
 
