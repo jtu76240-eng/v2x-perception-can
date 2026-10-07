@@ -417,7 +417,7 @@ def init_lane_shm():
 
 def write_lane_status(mm, lane_num, frame_index):
     """차선 상태를 SHM에 기록"""
-    timestamp_us = int(time.time() * 1_000_000)
+    timestamp_us = int(time.monotonic() * 1_000_000)
     mm.seek(0)
     mm.write(struct.pack("<IIQq", LANE_SHM_MAGIC, lane_num, frame_index, timestamp_us))
 
