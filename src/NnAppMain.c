@@ -2013,10 +2013,10 @@ int main(int argc, char **argv)
 		t_ms = getCurrentTime() * 1000.0;
 		NN_LOG("[PERF] Step1 GetFrame start ms=%.2f\n", t_ms);
 		NnGetFrame(pContext, pObj->cam_handle, pObj->msg_handle);
-		/* Capture timestamp (epoch-based) right after frame acquisition */
+		/* Capture timestamp (monotonic, same clock as CAN TX) right after frame acquisition */
 		{
 			struct timespec ts;
-			if (clock_gettime(CLOCK_REALTIME, &ts) == 0)
+			if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
 			{
 				uint64_t ms = (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)(ts.tv_nsec / 1000000ULL);
 				g_latest_capture_ms_u16[curNet] = (uint16_t)(ms & 0xFFFFU);
